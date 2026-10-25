@@ -1,0 +1,11 @@
+REVIEW 3 BASELINE AND PIPELINE BENCHMARK
+Capture disabled; same input and numerical operators.
+Config  FPS median   P95 ms   P99 ms   Peak MiB   CPU %
+B          56.897   19.305   21.748     19.570   100.0
+D          86.238  178.597  186.823    339.777   161.7
+Paired D/B speedup: 1.520
+95% interval: 1.498 to 1.545
+Interpretation: throughput improvement supported
+Audit: PASS. Read audit.json and raw worker/queue/frame records.
+CPU 100% = one CPU-equivalent; latency columns are medians of per-run percentiles.
+Replay frames are not additional distinct source images.

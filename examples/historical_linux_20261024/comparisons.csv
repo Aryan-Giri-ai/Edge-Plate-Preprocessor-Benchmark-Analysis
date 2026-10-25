@@ -1,0 +1,2 @@
+rate,baseline,candidate,purpose,pairs,paired_speedup,ci95_low,ci95_high,throughput_gain_pct,conclusion
+0.0,B,D,Primary concurrency comparison with reuse,10,1.5200141631507638,1.4977986168878739,1.544852223676414,52.001416315076376,throughput improvement supported
