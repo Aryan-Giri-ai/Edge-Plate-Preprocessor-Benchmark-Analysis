@@ -1,0 +1,62 @@
+{
+  "timed_runs": 104,
+  "timed_replay_frames": 52320,
+  "unique_test_images": 6,
+  "all_audits_passed": true,
+  "primary_paired_speedup": 1.4822144280911356,
+  "ci95": [
+    1.4366024558150559,
+    1.5263083665406563
+  ],
+  "pooled_baseline": {
+    "rate": "0.0",
+    "config": "B",
+    "runs": "10",
+    "fps_median": "49.244674449049995",
+    "profile": "source",
+    "edge_threshold": "80",
+    "fps_min": "45.283234587",
+    "fps_max": "51.4884352507",
+    "p50_ms_median": "19.833749",
+    "p95_ms_median": "23.863071124999998",
+    "p99_ms_median": "30.030691575",
+    "source_p95_ms_median": "23.863071124999998",
+    "admission_lag_last_ms_median": "0.0",
+    "peak_rss_mib_median": "19.55078125",
+    "cpu_one_core_pct_median": "99.9047918155",
+    "timed_frame_array_allocations": "0.0",
+    "fetch_mean_ms_median": "0.879750403333",
+    "gray_mean_ms_median": "5.229823776665",
+    "sobel_mean_ms_median": "12.74229373",
+    "output_mean_ms_median": "1.5204490908350001"
+  },
+  "pooled_pipeline": {
+    "rate": "0.0",
+    "config": "D",
+    "runs": "10",
+    "fps_median": "71.91860970100001",
+    "profile": "source",
+    "edge_threshold": "80",
+    "fps_min": "70.1454504975",
+    "fps_max": "75.2989820156",
+    "p50_ms_median": "184.44940674999998",
+    "p95_ms_median": "203.31405005",
+    "p99_ms_median": "214.96980503999998",
+    "source_p95_ms_median": "203.31405005",
+    "admission_lag_last_ms_median": "0.0",
+    "peak_rss_mib_median": "339.77734375",
+    "cpu_one_core_pct_median": "166.939067291",
+    "timed_frame_array_allocations": "0.0",
+    "fetch_mean_ms_median": "1.1550553158349999",
+    "gray_mean_ms_median": "6.164384292499999",
+    "sobel_mean_ms_median": "13.8400011925",
+    "output_mean_ms_median": "1.93231316417"
+  },
+  "limitations": [
+    "sample-only",
+    "shared Linux host",
+    "no estimator fitted",
+    "not full ALPR"
+  ],
+  "docx": "Review2_Evaluation_Draft.docx"
+}

@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "algorithm_id": "chen-patent-edge-subset-v1",
+  "profile": "source",
+  "edge_threshold": 80,
+  "slots": 34,
+  "pipeline_queue": 5,
+  "io": "file",
+  "training_status": "not_applicable_deterministic_preprocessor",
+  "official_splits": [
+    "training",
+    "validation",
+    "testing"
+  ]
+}
