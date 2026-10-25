@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "Please cite this software when using its implementation or evaluation workflow."
+title: "Edge Plate Preprocessor: Sequential and Four-Stage Pipeline"
+type: software
+authors:
+  - name: "Edge Plate Preprocessor contributors"
+version: "3.1.0"
+date-released: "2026-10-26"
+license: MIT
+abstract: "CPU preprocessing with controlled sequential and pipelined implementations and reproducible evaluation."
+

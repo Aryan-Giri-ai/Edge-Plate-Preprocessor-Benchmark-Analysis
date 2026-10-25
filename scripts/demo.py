@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run A, B and D and create an offline Review 2 report from measured captures."""
+"""Run A, B and D and create an offline Review 3 report from measured captures."""
 import argparse
 import csv
 import html
@@ -71,7 +71,7 @@ def main():
             'algorithm_id':ALGORITHM_IDS['source'],'edge_threshold':a.edge_threshold,
             'purpose':'Captured demonstration; do not use its FPS for the final performance conclusion.',
             'runs':{},'complete':False}
-    base=None;captured=None
+    base=None;captured=None; captured_gray=None; captured_binary=None
     run_dirs={c:ROOT/('baseline' if c in {'A','B'} else 'pipeline')/'results'/a.out.name/c for c in ['A','B','D']}
     for c in ['A','B','D']:
         dest=run_dirs[c]
@@ -81,8 +81,11 @@ def main():
         if summary.get('algorithm_id')!=ALGORITHM_IDS['source']:
             raise ValueError('Stale executable; rebuild')
         fp=fingerprints(dest);edges=(dest/'captured_edges.raw').read_bytes()
-        if base is None: base=fp;captured=edges
-        elif fp!=base or edges!=captured: raise ValueError('Output mismatch: demo rejected')
+        gray_capture=(dest/'captured_gray.raw').read_bytes()
+        binary_capture=(dest/'captured_binary.raw').read_bytes()
+        if base is None: base=fp;captured=edges;captured_gray=gray_capture;captured_binary=binary_capture
+        elif fp!=base or edges!=captured or gray_capture!=captured_gray or binary_capture!=captured_binary:
+            raise ValueError('Gray, binary or final-edge mismatch: demo rejected')
         fr=rows(dest/'frames.csv');workers=rows(dest/'workers.csv')
         ids={w['thread_id'] for w in workers}
         if len(ids)!=(4 if c=='D' else 1): raise ValueError('Unexpected worker identity count')
@@ -102,21 +105,22 @@ def main():
             g=Image.frombytes('L',(w,h),gray[i*n:(i+1)*n])
             b=Image.frombytes('L',(w,h),captured[i*n:(i+1)*n])
             d=Image.frombytes('L',(w,h),d_edges[i*n:(i+1)*n])
-            for key,img in [('input',inp),('gray',g),('baseline',b),('pipeline',d),('difference',ImageChops.difference(b,d))]:
+            binary=Image.frombytes('L',(w,h),captured_binary[i*n:(i+1)*n])
+            for key,img in [('input',inp),('gray',g),('baseline',b),('pipeline',d),('difference',ImageChops.difference(b,d)),('binary',binary),('closing_change',ImageChops.difference(binary,d))]:
                 img.save(pics/f'{i:03d}_{key}.png')
-    report['capture_byte_equality']='A, B and D: passed'
+    report['capture_byte_equality']='A, B and D: grayscale, pre-closing binary and final edges passed'
     report['complete']=True
     write_json(a.out/'demo.json',report)
-    content=['<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Review 2 | Edge preprocessing</title>',
+    content=['<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Review 3 | Edge preprocessing</title>',
     '<style>body{font:16px system-ui;margin:0;background:#f3f5f8;color:#172433}main{max-width:1200px;margin:auto;padding:28px}h1{font-size:32px}h2{margin-top:34px}p{line-height:1.6}.notice{background:#fff0c2;padding:16px;border-left:5px solid #997000}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.card,section{background:white;padding:14px;border-radius:8px}.card img{width:100%;height:180px;object-fit:contain;background:#111}table{border-collapse:collapse;width:100%;font-size:14px;margin:16px 0}td,th{text-align:left;padding:9px;border-bottom:1px solid #ccd3de}th{background:#e3e9f0}.scroll{overflow:auto}canvas{width:100%;height:250px;background:#fff}code{overflow-wrap:anywhere}label{display:block;margin:16px 0}.sub{color:#4d6075}a{color:#005ba8} @media(max-width:750px){.cards{grid-template-columns:1fr 1fr}}</style><main>',
-    '<h1>Review 2: edge preprocessing</h1>',
+    '<h1>Review 3: edge preprocessing</h1>',
     '<p class="notice">'+html.escape(report['purpose'])+' Input kind: <b>'+html.escape(manifest['kind'])+'</b>. '+('Generated noise, ramps and stripes are not traffic-camera evidence.' if manifest['kind']=='synthetic' else 'Converted images retain original dimensions; inspect the manifest for the selection.')+'</p>',
     '<p>CPU-only C++20. A: sequential with dynamic arrays. B: sequential with reused arrays. D: four workers with a reusable 34-slot pool and queue capacity 5. All run the same algorithm and frame order.</p>',
     '<p><b>Algorithm:</b> RGB grayscale + fixed contrast → vertical Sobel → binary threshold '+str(a.edge_threshold)+' → 3×3 closing → output. Chen et al. (2024), §4.4, supplies Sobel/threshold/closing; US6553131B1 Fig. 1 block 16 supplies vertical-edge prior art. No plate detector, segmentation, SVM or OCR is implemented.</p>',
     '<p>Input: '+str(w)+' × '+str(h)+'; '+str(manifest['count'])+' source frames replayed for '+str(a.frames)+' frames. SHA-256: <code>'+digest+'</code>. OS: '+html.escape(report['platform'])+'</p>',
     '<h2>Visible outputs</h2><p>Full-byte comparison of the captured A/B/D outputs: <b>PASS</b>. Frame fingerprints also match across the complete run. Images below come from the replay and the actual C++ captures. A and B outputs are identical.</p>',
     '<label>Captured frame <input id="frame" type="range" min="0" max="'+str(a.capture-1)+'" value="0"> <b id="frameLabel">0</b></label><div class="cards">']
-    for key,label in [('input','Input RGB'),('gray','Captured gray / contrast'),('baseline','A / B sequential edge output'),('pipeline','D pipeline edge output'),('difference','Absolute B–D difference (black = equal)')]:
+    for key,label in [('input','Input RGB'),('gray','Captured gray / contrast'),('baseline','A / B sequential edge output'),('pipeline','D pipeline edge output'),('difference','Absolute B–D difference (black = equal)'),('binary','Worker 3: thresholded Sobel before closing'),('closing_change','Pixels changed by morphological closing')]:
         content.append(f'<div class="card"><b>{label}</b><a data-kind="{key}" href="images/000_{key}.png"><img data-kind="{key}" src="images/000_{key}.png" alt="{label}"></a></div>')
     content+=['</div><h2>Actual recorded stage intervals</h2><p>Each bar is a measured service interval, colored by frame ID. The frame selector highlights the same frame across workers. The timeline is measured wall time, including possible preemption; it is not a CPU-core trace. Runs use separate time origins and scales. No synthetic animation is used.</p>',
               '<label>Run <select id="run"><option>A</option><option>B</option><option selected>D</option></select> First frame <input id="first" type="number" min="0" max="'+str(max(0,a.frames-1))+'" value="0"> Window: up to 16 frames</label><canvas id="timeline" width="1200" height="250"></canvas><p id="timelineInfo" class="sub"></p>',
@@ -133,7 +137,7 @@ def main():
         content.append(table(['Stage','Thread ID','Mean service ms','Input CV wait s','Output CV wait s','CV stall %'],[[NAMES[i],v['thread_id'],f"{r['summary']['mean_stage_ms'][i]:.4f}",v['cv_input_wait_s'],v['cv_output_wait_s'],v['cv_stall_pct']] for i,v in enumerate(r['workers'])]))
         content.append(table(['Queue','Capacity','Time-weighted mean','High water'],[[v[k] for k in ['queue','capacity','time_weighted_mean','high_watermark']] for v in r['queues']]))
         content.append('<p>Unique slots used: '+str(r['unique_slots_used'])+'. Stage ordering and slot reuse: PASS. <a href="'+r['relative_path']+'/frames.csv">Frame / slot timestamps</a> · <a href="'+r['relative_path']+'/workers.csv">Workers</a> · <a href="'+r['relative_path']+'/summary.json">Summary</a></p>')
-    content+=['<h2>What this demonstrates</h2><p>Sequential execution, four worker identities, overlapping wall intervals where observed, ordered slot reuse, bounded queue occupancy, CV waits, and equivalent preprocessing outputs. Queues carry slot IDs. Output returns each slot to the free pool. A zero producer wait is a measured absence of that wait in this run; it must not be relabeled as observed backpressure.</p>',
+    content+=['<h2>How the threads support edge refinement</h2><p>Worker 2 produces grayscale pixels for Worker 3. Worker 3 computes vertical Sobel, thresholds it and applies dilation then erosion. The pre-closing and final maps above are captured from the actual C++ workers. The four threads overlap different frames; threading does not change the edge operator or establish higher recognition quality. Changed pixels illustrate morphology, not accuracy.</p>', '<h2>What this demonstrates</h2><p>Sequential execution, four worker identities, overlapping wall intervals where observed, ordered slot reuse, bounded queue occupancy, CV waits, and equivalent preprocessing outputs. Queues carry slot IDs. Output returns each slot to the free pool. A zero producer wait is a measured absence of that wait in this run; it must not be relabeled as observed backpressure.</p>',
               '<p>IPC, cycles, cache references/misses, bandwidth, energy and per-core concurrency: <b>not measured</b>. Recognition accuracy, full patent reproduction, live-camera deadlines and guaranteed speedup: <b>not established</b>. Use docs/REVIEW2_DEMO.md and docs/COMPARATIVE_ANALYSIS.md to complete the A–F ablations and conclusions.</p>',
               '<p><a href="demo.json">Complete demo record</a></p></main><script>const runs='+json.dumps(report['runs']).replace('<','\\u003c')+'; const names='+json.dumps(NAMES)+';',
               '''const frame=document.getElementById('frame'),first=document.getElementById('first'),run=document.getElementById('run');

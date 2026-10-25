@@ -1,10 +1,6 @@
 # Implementation contract and measurement methodology
 
-## Source of the design
-
-The implementation follows the recovered `Edge-Based Traffic Camera License Plate Pre-Processor - Review-1 Project Report (Final).docx` and `EBTCLPP_Review1_Contextualized_Crisp.pptx`. Their agreed constraints are CPU-only C++20, four stages/four workers, explicit grayscale and Sobel operations, condition-variable backpressure, buffer handles, reusable storage, queue sizes 2/5/10 and the A–F ablation matrix.
-
-The original report left numerical preprocessing details open. The Review 2 default follows the actual attached Chen et al. paper's edge-stage sequence and the patent's vertical-edge operation. Rounding, affine contrast, threshold, closing element, border rules, file format and pool size are explicit project choices. See [SOURCE_ALIGNMENT.md](SOURCE_ALIGNMENT.md).
+CPU-only C++20 preprocessing. See SOURCE_ALIGNMENT.md for the selected sources and architectural choices.
 
 ## One deterministic operation chain: source profile (default)
 
@@ -82,7 +78,7 @@ At 1920×1080, B's one slot plus output uses 12,441,600 bytes (~11.9 MiB). The d
 
 `timed_frame_array_allocations` counts successful-run calls attributable to the three frame arrays: exactly 3N for dynamic and 0 for pooled operation. `setup_frame_array_allocations` includes the one output buffer and pooled frame arrays. These are deterministic counts of this code's large-array allocations, **not instrumentation of every C++/OS allocation**. They exclude metadata, threads, queues, CSV writers, input buffers and optional capture memory. Do not report them as total allocator calls.
 
-Per-frame timing records are preallocated before timing and grow with N. A guard caps the requested frame buffers, capture and records at 2 GiB, with combined gray-plus-edge capture separately capped at 512 MiB. Optional source preload adds at most 1 GiB. This guard does not predict the complete process's physical memory use.
+Per-frame timing records are preallocated before timing and grow with N. A guard caps the requested frame buffers, capture and records at 2 GiB, with combined capture separately capped at 512 MiB (three planes for source: final edges, grayscale and pre-closing binary; two for legacy). Optional source preload adds at most 1 GiB. This guard does not predict the complete process's physical memory use.
 
 ## Input preparation and IO controls
 
@@ -92,7 +88,7 @@ Per-frame timing records are preallocated before timing and grow with N. A guard
 
 `--io ram`: load the entire replay before timing, then copy each frame into the same per-slot RGB buffer. This removes timed file reads but preserves a real input copy. RAM source reads remain part of the memory workload. Source preload is limited to 1 GiB, so full UFPR replay uses file mode.
 
-Neither mode measures PNG decoding, video decoding, capture, network transport or GUI display. Raw preprocessing isolates the agreed architecture mechanisms but narrows the end-to-end application claim. The full 4500-frame dataset exceeds the user's installed RAM in decoded form; it must not be described as entirely preloaded on that laptop.
+Neither mode measures PNG decoding, video decoding, capture, network transport or GUI display. Raw preprocessing isolates the agreed architecture mechanisms but narrows the end-to-end application claim. A large decoded collection may exceed available memory. Use file mode for large collections; RAM mode has a 1 GiB source-preload guard.
 
 ## Timer boundaries
 

@@ -1,7 +1,16 @@
-# Pipelined preprocessor project
+# Four-stage pipeline
 
-Build from the head folder with `bash pipeline/build.sh`. The native executable is `pipeline/build/edge_pipeline.exe` on MSYS2 UCRT64.
+Build from the root with bash pipeline/build.sh. Linux executable: pipeline/build/edge_pipeline; MSYS2 UCRT64 adds .exe.
 
-Run `python pipeline/run.py --prepared data/prepared/ufpr_init --split training --run-name pipeline_trial --config D --capture 4` from the head folder. D uses four stage workers, reused buffers, queue depth 5 and 34 slots. C, E1, E3 and F provide the agreed controls. Results are written under `pipeline/results/` for this launcher.
+Four persistent workers overlap different frames: Fetch, Gray/contrast, Sobel/threshold/closing and Output/recycle. Bounded queues pass slot IDs. D uses queue capacity 5 and 34 pooled slots. C, E1, E3 and F provide allocation, queue and traversal controls.
 
-The explicit C++ entry point is `src/main.cpp`. Shared functions in `../shared/` keep pixel operations identical to the sequential program. Parallelism is across frames in different stages. There is no model fitting.
+Use scripts/review3_demo.py for visual output and worker records, or scripts/run_review3.py for paired benchmarks. Native records are under pipeline/results/. Threads are not pinned to CPU cores.
+
+
+Single-family demonstration from the root:
+
+~~~bash
+python pipeline/run.py --dataset data/prepared/synthetic_01.epraw --run-name separate_01 --frames 120 --capture 3
+~~~
+
+Use a fresh run-name each time. The launcher saves raw captures and records; use the joint demo for its HTML viewer.

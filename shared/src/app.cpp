@@ -144,7 +144,7 @@ int run(int argc, char** argv, bool pipeline) {
           << "--edge-threshold N (source only; default 80, project-selected raw Sobel units)\n"
           << "--queue N (default 5) --slots N (default 34, pipeline only)\n"
           << "--rate FPS (0=unpaced; paced replay blocks, never drops)\n"
-          << "--capture N (first N gray and edge frames, demo/correctness only; adds copying)\n";
+          << "--capture N (first N gray, final edge and source-profile pre-closing binary frames, demo/correctness only; adds copying)\n";
         return 0;
     }
     const auto setup_start=Clock::now();
@@ -154,7 +154,8 @@ int run(int argc, char** argv, bool pipeline) {
     if(fs::exists(o.out)) throw std::runtime_error("output directory already exists; choose a fresh --out");
     const std::size_t pixels=source.width*source.height, slots_n=pipeline?o.slots:1;
     const std::uint64_t frame_bound=5ULL*pixels*slots_n+pixels;
-    const std::uint64_t capture_bytes=static_cast<std::uint64_t>(o.capture)*pixels*2;
+    const std::uint64_t capture_plane_bytes=static_cast<std::uint64_t>(o.capture)*pixels;
+    const std::uint64_t capture_bytes=capture_plane_bytes*(o.profile=="source"?3:2);
     if(capture_bytes>512ULL*1024*1024 || frame_bound+capture_bytes+o.frames*sizeof(Record)>2ULL*1024*1024*1024)
         throw std::runtime_error("requested working buffers/records exceed project memory guard");
     std::vector<Slot> slots(slots_n);
@@ -203,6 +204,8 @@ int run(int argc, char** argv, bool pipeline) {
         s.m.begin[2]=stamp();
         if(o.profile=="source") {
             vertical_sobel(s.gray.get(),s.edges.get(),source.width,source.height,o.traversal=="column",static_cast<int>(o.edge_threshold));
+            if(s.m.id<o.capture)
+                std::memcpy(captured.get()+2*capture_plane_bytes+s.m.id*pixels,s.edges.get(),pixels);
             close_binary(s.edges.get(),s.rgb.get(),source.width,source.height,o.traversal=="column");
         } else sobel(s.gray.get(),s.edges.get(),source.width,source.height,o.traversal=="column");
         s.m.end[2]=stamp(); workers[2].service+=s.m.end[2]-s.m.begin[2];
@@ -358,9 +361,13 @@ int run(int argc, char** argv, bool pipeline) {
     js<<"\n}\n"; js.close();
     if(capture_bytes) {
         std::ofstream dump(o.out/"captured_edges.raw",std::ios::binary); dump.exceptions(std::ios::badbit|std::ios::failbit);
-        dump.write(reinterpret_cast<const char*>(captured.get()),static_cast<std::streamsize>(capture_bytes/2)); dump.close();
+        dump.write(reinterpret_cast<const char*>(captured.get()),static_cast<std::streamsize>(capture_plane_bytes)); dump.close();
         std::ofstream gdump(o.out/"captured_gray.raw",std::ios::binary); gdump.exceptions(std::ios::badbit|std::ios::failbit);
-        gdump.write(reinterpret_cast<const char*>(captured.get()+capture_bytes/2),static_cast<std::streamsize>(capture_bytes/2)); gdump.close();
+        gdump.write(reinterpret_cast<const char*>(captured.get()+capture_plane_bytes),static_cast<std::streamsize>(capture_plane_bytes)); gdump.close();
+        if(o.profile=="source") {
+            std::ofstream bdump(o.out/"captured_binary.raw",std::ios::binary); bdump.exceptions(std::ios::badbit|std::ios::failbit);
+            bdump.write(reinterpret_cast<const char*>(captured.get()+2*capture_plane_bytes),static_cast<std::streamsize>(capture_plane_bytes)); bdump.close();
+        }
     }
     // Output files are published last by creating a success marker after all writes.
     std::ofstream marker(o.out/"SUCCESS"); marker.exceptions(std::ios::badbit|std::ios::failbit);
