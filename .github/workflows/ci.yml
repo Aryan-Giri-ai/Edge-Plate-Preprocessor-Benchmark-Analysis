@@ -1,0 +1,23 @@
+name: Linux correctness
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r requirements.txt
+      - run: bash scripts/build.sh
+      - run: python scripts/check.py --report evidence/ci_correctness.json
+      - run: python tests/check_capture.py
+      - run: python tests/check_prepare_groups.py
+      - name: Small synthetic workflow check
+        run: |
+          python scripts/prepare_data.py synthetic --width 160 --height 90 --count 3 --out data/prepared/ci.epraw
+          python scripts/review3_demo.py --dataset data/prepared/ci.epraw --out results/ci_demo --frames 24 --capture 2
+          python scripts/run_review3.py --dataset data/prepared/ci.epraw --tag ci_smoke --frames 24 --repeats 2 --warmup 6
+
