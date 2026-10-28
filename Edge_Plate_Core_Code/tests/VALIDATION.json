@@ -1,0 +1,25 @@
+{
+  "platform": "Linux",
+  "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0",
+  "native_build": "passed",
+  "original_kernel_tests": "passed",
+  "generated_input_check": {
+    "width": 24,
+    "height": 16,
+    "distinct_sources": 3,
+    "frames_per_mode": 36,
+    "captured_frames_per_mode": 3,
+    "sequential_worker_identities": 1,
+    "pipeline_worker_identities": 4,
+    "checks": [
+      "frame and source order",
+      "stage precedence",
+      "slot reuse",
+      "queue capacity",
+      "per-frame fingerprint agreement",
+      "full captured grayscale, binary and closed-edge byte equality"
+    ]
+  },
+  "windows_execution": "not rerun",
+  "purpose": "correctness check, not performance benchmark"
+}
