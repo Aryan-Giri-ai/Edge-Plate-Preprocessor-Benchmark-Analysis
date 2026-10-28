@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "host": "Linux",
+  "checks": [
+    "native B/D capture equality and Python reference at small/border sizes and thresholds 0/80/1020",
+    "1920x1080 full-byte equality for grayscale, binary Sobel and closed captures",
+    "measured pipeline overlap, replay-time service lookup and rejection of damaged traces/mixed resolutions",
+    "randomized capture-free paired benchmark with six retained raw runs and downloadable evidence",
+    "Streamlit Run gating, actual four-worker result, event stepping, B/D trace switch, captured-frame selection and benchmark form",
+    "invalid local path displays an actionable error"
+  ],
+  "limits": [
+    "Native Windows execution untested here",
+    "No hardware CPU-core trace",
+    "New tests use generated inputs, not UFPR source images"
+  ]
+}

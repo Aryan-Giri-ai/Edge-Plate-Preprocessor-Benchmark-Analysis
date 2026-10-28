@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+native/bin/
+local_data/
+results/
+*.epraw
+*.raw
+*.zip
+.env
+

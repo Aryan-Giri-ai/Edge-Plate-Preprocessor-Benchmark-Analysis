@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "host": "Linux",
+  "checks": [
+    "independent scalar convolution and set-based morphology at four sizes and thresholds 0/80/1020",
+    "1920x1080 native and Python full-byte parity on all three captured planes",
+    "PNG loading, corrupt-image rejection and downloadable output archive",
+    "Streamlit form waits for Run; threshold edits retain labeled prior result until resubmission; native and Python UI runs",
+    "local-folder invalid path displays an actionable error"
+  ]
+}

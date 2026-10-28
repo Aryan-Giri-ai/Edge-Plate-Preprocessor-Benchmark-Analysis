@@ -1,0 +1,6 @@
+Linux local validation
+Python 3.12.14
+Streamlit 1.66.1
+NumPy 2.5.4
+Pillow 13.0.0
+Native Windows execution remains untested here.
