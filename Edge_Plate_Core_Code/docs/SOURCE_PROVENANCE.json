@@ -1,0 +1,35 @@
+{
+  "source_archive": "Review3_Pipeline_Streamlit.zip",
+  "source_library_file_id": "libfile_497deac3c4f48191a8b27b7ca30cb652",
+  "native_source_policy": "engine and native/build.sh copied unchanged; supplementary documentation and smoke check added",
+  "source_files": [
+    {
+      "path": "engine/baseline/src/main.cpp",
+      "sha256": "ca9cb7348b8619bda2d4a937ace9cf8b5e93fdc9b7d0e748bfd94ca08fbd5b55"
+    },
+    {
+      "path": "engine/pipeline/src/main.cpp",
+      "sha256": "68e1734bde09c397b77048039687f6671b98e224e4158559d0f51e2ac78a0a80"
+    },
+    {
+      "path": "engine/shared/include/app.hpp",
+      "sha256": "53b066873ba91c3857d52adf9db398ed76041d713bd0df8d63959bd1338c2736"
+    },
+    {
+      "path": "engine/shared/include/kernels.hpp",
+      "sha256": "0234027adcf5239c674ce9c68784c7a9923055c5c65b1f6e5d6c8edb332221f5"
+    },
+    {
+      "path": "engine/shared/include/platform.hpp",
+      "sha256": "c42cf31cef23ec7b0d3237812514635b8c97ede26e200f153b3799d76a5f39b9"
+    },
+    {
+      "path": "engine/shared/include/queue.hpp",
+      "sha256": "fe698cb8615d71af126282d98d16a4d6e3301a1502332b6e50fb16c75bd39232"
+    },
+    {
+      "path": "engine/shared/src/app.cpp",
+      "sha256": "83b2da297929fe2052e39c58fc2ef2414731139f547f7e7cbd9b5b86fbac661a"
+    }
+  ]
+}
